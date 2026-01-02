@@ -1,5 +1,5 @@
-import { Speakeasy } from 'speakeasy'
-import  prisma  from '@/lib/prisma'
+import  Speakeasy  from 'speakeasy'
+import  {prisma}  from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
 export async function POST(req: Request) {
