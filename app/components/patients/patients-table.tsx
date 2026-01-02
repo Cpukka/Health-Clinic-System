@@ -68,6 +68,8 @@ interface PatientsTableProps {
   onViewRecords?: (patient: Patient) => void
   onViewHistory?: (patient: Patient) => void
   onDelete?: (patientId: string) => void
+  filter: "all" | "active" | "inactive"  // ✅ Add this
+  searchQuery: string
 }
 
 export function PatientsTable({

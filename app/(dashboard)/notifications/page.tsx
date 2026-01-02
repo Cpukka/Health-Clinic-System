@@ -595,8 +595,8 @@ interface NotificationListProps {
   notifications: Notification[]
   onMarkAsRead: (id: string) => void
   onDelete: (id: string) => void
-  getNotificationIcon: (type: Notification["type"]) => JSX.Element
-  getPriorityBadge: (priority: Notification["priority"]) => JSX.Element
+ getNotificationIcon: (type: Notification["type"]) => React.ReactNode
+ getPriorityBadge: (priority: Notification["priority"]) => React.ReactNode
 }
 
 function NotificationList({

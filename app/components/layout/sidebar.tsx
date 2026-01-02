@@ -72,7 +72,7 @@ export function Sidebar() {
                     "w-full justify-start",
                     isActive && "bg-accent"
                   )}
-                  onClick={() => router.push(item.href)}
+                  onClick={() => router.push(item.href as any)}
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   {item.name}

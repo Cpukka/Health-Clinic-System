@@ -159,7 +159,7 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                       {profileData.personalInfo.fullName
                         .split(" ")
-                        .map(n => n[0])
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
