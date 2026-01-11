@@ -2,10 +2,10 @@
 import { NextAuthOptions } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import CredentialsProvider from "next-auth/providers/credentials"
-import  {prisma}  from "../lib/prisma"
+import  prisma  from "../lib/prisma"
 import bcrypt from "bcryptjs"
 
-// Type workaround for version mismatch
+// Type workaround for /version mismatch
 const adapter: any = PrismaAdapter(prisma)
 
 export const authOptions: NextAuthOptions = {

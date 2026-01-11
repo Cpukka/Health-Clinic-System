@@ -26,12 +26,14 @@ model User {
   availability        DoctorAvailability[]
   medicalRecords      MedicalRecord[]
   notifications       Notification[]
-  clinicCode  String?  // Add this field
+  clinicCode          String? // Add this field
+  isActive  Boolean  @default(true) // ✅ ADD THIS
   patient             Patient?
   prescriptions       Prescription[]
   sessions            Session[]
   clinic              Clinic?              @relation(fields: [clinicId], references: [id])
   hmo                 HMO?                 @relation(fields: [hmoId], references: [id])
+  doctorProfile       DoctorProfile?
 }
 
 model Clinic {
@@ -295,6 +297,18 @@ model ClinicSetting {
   clinic      Clinic   @relation(fields: [clinicId], references: [id])
 
   @@unique([clinicId, key])
+}
+
+model DoctorProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  specialty  String
+  licenseNo  String?
+  experience Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 enum UserRole {

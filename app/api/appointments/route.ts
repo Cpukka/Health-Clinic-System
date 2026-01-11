@@ -1,98 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-//import  {prisma}  from "/lib/prisma"
+import prisma from "@/lib/prisma"
 import { SMSService } from "@/lib/services/sms-service"
 
-
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { searchParams } = new URL(request.url)
-    const filter = searchParams.get("filter") || "today"
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = parseInt(searchParams.get("limit") || "10")
-
-    const skip = (page - 1) * limit
-
-    const now = new Date()
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
-
-    let where: any = {
-      clinicId: session.user.clinicId
-    }
-
-    switch (filter) {
-      case "today":
-        where.scheduledFor = {
-          gte: startOfToday,
-          lt: endOfToday
-        }
-        break
-      case "upcoming":
-        where.scheduledFor = { gt: now }
-        where.status = { in: ["SCHEDULED", "CONFIRMED"] }
-        break
-      case "past":
-        where.scheduledFor = { lt: now }
-        break
-      // "all" - no date filter
-    }
-
-    const [appointments, total] = await Promise.all([
-      prisma.appointment.findMany({
-        where,
-        include: {
-          patient: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              phone: true,
-              email: true
-            }
-          },
-          doctor: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          clinic: {
-            select: {
-              name: true
-            }
-          }
-        },
-        skip,
-        take: limit,
-        orderBy: { scheduledFor: "asc" }
-      }),
-      prisma.appointment.count({ where })
-    ])
-
-    return NextResponse.json({
-      appointments,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    })
-  } catch (error) {
-    console.error("Failed to fetch appointments:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch appointments" },
-      { status: 500 }
-    )
-  }
+  // ... existing GET code ...
 }
 
 export async function POST(request: NextRequest) {
@@ -126,7 +39,6 @@ export async function POST(request: NextRequest) {
     const conflictingAppointments = await prisma.appointment.findMany({
       where: {
         OR: [
-          // Doctor has conflicting appointment
           {
             doctorId: data.doctorId,
             scheduledFor: {
@@ -135,7 +47,6 @@ export async function POST(request: NextRequest) {
             },
             status: { in: ["SCHEDULED", "CONFIRMED"] }
           },
-          // Patient has conflicting appointment
           {
             patientId: data.patientId,
             scheduledFor: {
@@ -152,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: "Scheduling conflict detected",
-          conflicts: conflictingAppointments 
+          details: "Doctor or patient already has an appointment at this time"
         },
         { status: 409 }
       )
@@ -164,11 +75,38 @@ export async function POST(request: NextRequest) {
         ...data,
         clinicId: session.user.clinicId!,
         scheduledFor: appointmentTime,
-        status: data.status || "SCHEDULED"
+        endTime: appointmentEnd,
+        status: data.status || "SCHEDULED",
+        type: data.type || "CONSULTATION"
       },
       include: {
-        patient: true,
-        doctor: true
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true
+          }
+        },
+       doctor: {
+  select: {
+    id: true,
+    name: true,
+    doctorProfile: {
+      select: {
+        specialty: true
+      }
+    }
+  }
+},
+
+        clinic: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       }
     })
 
@@ -187,24 +125,40 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Schedule SMS reminder (24 hours before)
-    const reminderTime = new Date(appointmentTime.getTime() - 24 * 60 * 60 * 1000)
+    // Send confirmation SMS
+    try {
+      const smsService = new SMSService()
+      await smsService.sendAppointmentConfirmation(appointment, appointment.patient.phone)
+      console.log("Appointment confirmation SMS sent successfully")
+    } catch (smsError) {
+      console.error("Failed to send SMS, but appointment was created:", smsError)
+      // Continue even if SMS fails
+    }
+
+    // Schedule reminder (create reminder record - you'll need a cron job to process these)
+    const reminderTime = new Date(appointmentTime.getTime() - 24 * 60 * 60 * 1000) // 24 hours before
     await prisma.appointmentReminder.create({
       data: {
         appointmentId: appointment.id,
-        scheduledFor: reminderTime
+        scheduledFor: reminderTime,
+         status: "pending" // optional, default already handles this
+    // sentAt is null by default
       }
     })
 
-    // Send confirmation SMS
-    const smsService = new SMSService()
-    await smsService.sendAppointmentConfirmation(appointment, appointment.patient.phone)
-
-    return NextResponse.json({ appointment }, { status: 201 })
-  } catch (error) {
+    return NextResponse.json({ 
+      success: true,
+      appointment,
+      message: "Appointment created successfully"
+    }, { status: 201 })
+    
+  } catch (error: any) {
     console.error("Failed to create appointment:", error)
     return NextResponse.json(
-      { error: "Failed to create appointment" },
+      { 
+        error: "Failed to create appointment",
+        details: error.message 
+      },
       { status: 500 }
     )
   }

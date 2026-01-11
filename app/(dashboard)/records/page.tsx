@@ -45,6 +45,7 @@ import {
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
+
 // Types
 interface MedicalRecord {
   id: string
@@ -166,6 +167,7 @@ export default function MedicalRecordsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Medical Records</h2>

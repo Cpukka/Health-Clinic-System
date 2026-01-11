@@ -1,56 +1,79 @@
+// app/components/mobile-nav.tsx
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Button } from "@/app/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "../../../app/components/ui/sheet"
 import {
-  Calendar,
+  Menu,
   Home,
+  Stethoscope,
+  Calendar,
   Users,
   FileText,
-  Settings,
-  Bell,
-  MessageSquare,
+  HelpCircle,
+  Phone,
+  Info,
+  X,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/app/components/ui/button"
 
-const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
+const navigation = [
+  { name: "Home", href: "/", icon: Home },
   { name: "Appointments", href: "/appointments", icon: Calendar },
   { name: "Patients", href: "/patients", icon: Users },
-  { name: "Medical Records", href: "/records", icon: FileText },
-  { name: "Notifications", href: "/notifications", icon: Bell },
-  { name: "Messages", href: "/messages", icon: MessageSquare },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Doctors", href: "/doctors", icon: Stethoscope },
+  { name: "Services", href: "/services", icon: FileText },
+  { name: "About", href: "/about", icon: Info },
+  { name: "Contact", href: "/contact", icon: Phone },
+  { name: "Help", href: "/help", icon: HelpCircle },
 ]
 
 export function MobileNav() {
+  const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 z-40">
-      <div className="flex items-center justify-around p-2">
-        {navItems.slice(0, 5).map((item) => {
-          const Icon = item.icon
-          return (
-            <Button
-              key={item.name}
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "h-12 w-12",
-                pathname === item.href && "bg-accent"
-              )}
-              asChild
-            >
-              <Link href={item.href}>
-                <Icon className="h-5 w-5" />
-                <span className="sr-only">{item.name}</span>
-              </Link>
-            </Button>
-          )
-        })}
-      </div>
-    </div>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="lg:hidden">
+          <Menu className="h-5 w-5" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-75 sm:w-100">
+        <div className="flex items-center justify-between mb-6">
+          <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <Stethoscope className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-xl">HealthClinic</span>
+          </Link>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        <nav className="flex flex-col gap-1">
+          {navigation.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+            return (
+              <Button
+                key={item.name}
+                variant={isActive ? "secondary" : "ghost"}
+                className="justify-start gap-3 h-12"
+                asChild
+                onClick={() => setOpen(false)}
+              >
+                <Link href={item.href}>
+                  <Icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+              </Button>
+            )
+          })}
+        </nav>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -1,3 +1,6 @@
+// app/page.tsx
+"use client" // ADD THIS LINE - Makes it a client component
+
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { CheckCircle, Calendar, Users, Shield } from "lucide-react"
@@ -16,7 +19,7 @@ export default function HomePage() {
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
               Comprehensive Health Clinic
-              <span className="block text-primary">Management System</span>
+              <span className="block text-blue-600 dark:text-blue-400">Management System</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
               Streamline your clinic operations with our all-in-one solution for appointments, 
@@ -29,7 +32,7 @@ export default function HomePage() {
                   Get Started
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="outline" asChild className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
                 <Link href="#features">
                   Learn More
                 </Link>
@@ -40,19 +43,19 @@ export default function HomePage() {
           {/* Stats */}
           <div className="mt-20 grid grid-cols-2 gap-8 lg:grid-cols-4">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary">500+</div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">500+</div>
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Clinics Trust Us</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary">1M+</div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">1M+</div>
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Patients Managed</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary">99.9%</div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">99.9%</div>
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Uptime</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary">24/7</div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">24/7</div>
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">Support</div>
             </div>
           </div>
@@ -72,60 +75,60 @@ export default function HomePage() {
           </div>
 
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-none shadow-lg">
+            <Card className="border-none shadow-lg dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
-                <div className="rounded-lg bg-primary/10 p-3 w-fit">
-                  <Calendar className="h-6 w-6 text-primary" />
+                <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-3 w-fit">
+                  <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <CardTitle>Appointment Management</CardTitle>
+                <CardTitle className="dark:text-white">Appointment Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
+                <CardDescription className="dark:text-gray-300">
                   Schedule, reschedule, and track appointments with automated reminders
                   and real-time availability.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg">
+            <Card className="border-none shadow-lg dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
-                <div className="rounded-lg bg-primary/10 p-3 w-fit">
-                  <Users className="h-6 w-6 text-primary" />
+                <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-3 w-fit">
+                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <CardTitle>Patient Records</CardTitle>
+                <CardTitle className="dark:text-white">Patient Records</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
+                <CardDescription className="dark:text-gray-300">
                   Secure electronic health records with comprehensive medical history,
                   prescriptions, and treatment plans.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg">
+            <Card className="border-none shadow-lg dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
-                <div className="rounded-lg bg-primary/10 p-3 w-fit">
-                  <CheckCircle className="h-6 w-6 text-primary" />
+                <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-3 w-fit">
+                  <CheckCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <CardTitle>SMS Reminders</CardTitle>
+                <CardTitle className="dark:text-white">SMS Reminders</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
+                <CardDescription className="dark:text-gray-300">
                   Reduce no-shows with automated SMS reminders and confirmations sent
                   directly to patients.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg">
+            <Card className="border-none shadow-lg dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
-                <div className="rounded-lg bg-primary/10 p-3 w-fit">
-                  <Shield className="h-6 w-6 text-primary" />
+                <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-3 w-fit">
+                  <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <CardTitle>HIPAA Compliant</CardTitle>
+                <CardTitle className="dark:text-white">HIPAA Compliant</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
+                <CardDescription className="dark:text-gray-300">
                   Enterprise-grade security with encryption, access controls, and audit
                   trails to protect patient data.
                 </CardDescription>
@@ -136,7 +139,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-linear-to-r from-primary to-blue-600">
+      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-linear-to-r from-blue-600 to-blue-800 dark:from-blue-800 dark:to-blue-900">
         <div className="mx-auto max-w-7xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Ready to Transform Your Clinic?
@@ -145,16 +148,16 @@ export default function HomePage() {
             Join thousands of healthcare providers who trust our platform for their
             daily operations.
           </p>
-          <div className="mt-10">
-            <Button size="lg" variant="secondary" asChild>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" variant="secondary" asChild className="bg-white text-blue-600 hover:bg-blue-50">
               <Link href="/register">
                 Start Free Trial
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="ml-4 bg-transparent text-white" asChild>
-              <a href="/contact">
+            <Button size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white/10" asChild>
+              <Link href="/contact">
                 Schedule Demo
-              </a>
+              </Link>
             </Button>
           </div>
         </div>
@@ -171,16 +174,24 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex gap-6">
+              <Link href="/about" className="text-sm text-gray-400 hover:text-white">
+                About
+              </Link>
               <Link href="/privacy" className="text-sm text-gray-400 hover:text-white">
                 Privacy Policy
               </Link>
               <Link href="/terms" className="text-sm text-gray-400 hover:text-white">
                 Terms of Service
               </Link>
-              <a href="/contact" className="text-sm text-gray-400 hover:text-white">
+              <Link href="/contact" className="text-sm text-gray-400 hover:text-white">
                 Contact
-              </a>
+              </Link>
             </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-gray-800 text-center">
+            <p className="text-sm text-gray-400">
+              HIPAA compliant • SOC 2 Type II certified • Built for healthcare providers
+            </p>
           </div>
         </div>
       </footer>

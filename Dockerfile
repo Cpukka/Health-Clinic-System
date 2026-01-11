@@ -1,45 +1,29 @@
-# Use Node.js LTS
-FROM node:18-alpine AS base
+# 1️⃣ Base image
+FROM node:20-alpine AS base
+WORKDIR /app
 
-# Install dependencies only when needed
+# 2️⃣ Install dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-# Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm install
 
-# Rebuild the source code only when needed
+# 3️⃣ Build Next.js app
 FROM base AS builder
-WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Generate Prisma Client
-RUN npx prisma generate
-
-# Build the application
 RUN npm run build
 
-# Production image, copy all the files and run next
-FROM base AS runner
+# 4️⃣ Production runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-
-USER nextjs
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
-ENV PORT=3000
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

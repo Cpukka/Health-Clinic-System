@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@custom-variant dark (&:where(.dark, .dark *));
 /* CSS Custom Properties (CSS Variables) */
 :root {
   --background: 0 0% 100%;

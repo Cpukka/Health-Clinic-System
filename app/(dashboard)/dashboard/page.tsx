@@ -1,181 +1,166 @@
+// app/(dashboard)/dashboard/page.tsx
 "use client"
 
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { Badge } from "@/app/components/ui/badge"
 import { Button } from "@/app/components/ui/button"
-import { Calendar, Users, FileText, Bell, Activity, TrendingUp, Clock } from "lucide-react"
-import { format } from "date-fns"
+import {
+  Users,
+  Calendar,
+  FileText,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  DollarSign
+} from "lucide-react"
 
 export default function DashboardPage() {
-  const stats = [
-    { title: "Total Appointments", value: "156", icon: Calendar, change: "+12%" },
-    { title: "Active Patients", value: "342", icon: Users, change: "+8%" },
-    { title: "Medical Records", value: "1,234", icon: FileText, change: "+23%" },
-    { title: "Notifications", value: "3", icon: Bell, change: "New" },
-  ]
+  const { data: session } = useSession()
 
-  const appointments = [
-    { id: 1, patient: "John Doe", time: "10:00 AM", type: "Consultation", status: "confirmed" },
-    { id: 2, patient: "Sarah Johnson", time: "11:30 AM", type: "Follow-up", status: "pending" },
-    { id: 3, patient: "Michael Chen", time: "2:00 PM", type: "Check-up", status: "confirmed" },
-    { id: 4, patient: "Emma Wilson", time: "3:30 PM", type: "Vaccination", status: "cancelled" },
-  ]
+  // Mock data - in production, fetch from API
+  const stats = {
+    totalPatients: 1247,
+    todayAppointments: 23,
+    pendingRecords: 8,
+    monthlyRevenue: 45680
+  }
 
-  const recentActivity = [
-    { icon: Users, title: "New patient registered", time: "10 min ago" },
-    { icon: TrendingUp, title: "Appointment confirmed", time: "30 min ago" },
-    { icon: Activity, title: "Medical record updated", time: "1 hour ago" },
+  const recentAppointments = [
+    {
+      id: "1",
+      patient: "John Doe",
+      time: "09:00 AM",
+      type: "Check-up",
+      status: "confirmed"
+    },
+    {
+      id: "2",
+      patient: "Jane Smith",
+      time: "10:30 AM",
+      type: "Consultation",
+      status: "confirmed"
+    },
+    {
+      id: "3",
+      patient: "Bob Johnson",
+      time: "02:00 PM",
+      type: "Follow-up",
+      status: "pending"
+    }
   ]
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4">
+      {/* Welcome Section */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Welcome back! Here&apos;s what&apos;s happening with your clinic today.
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Welcome back, {session?.user?.name?.split(' ')[0] || 'Staff'}! Here's what's happening today.
           </p>
         </div>
-        
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">{stat.change}</span> from last month
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Badge variant="secondary" className="px-3 py-1">
+          {session?.user?.role || 'Staff'}
+        </Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalPatients.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              +12% from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.todayAppointments}</div>
+            <p className="text-xs text-muted-foreground">
+              8 confirmed, 15 pending
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Records</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingRecords}</div>
+            <p className="text-xs text-muted-foreground">
+              Requires review
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              +8% from last month
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Appointments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
           <CardHeader>
-            <CardTitle>Appointments Overview</CardTitle>
+            <CardTitle>Today's Appointments</CardTitle>
             <CardDescription>
-              Today&apos;s scheduled appointments
+              Upcoming appointments for today
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {appointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className="flex items-center justify-between p-3 rounded-lg border"
-                >
+              {recentAppointments.map((appointment) => (
+                <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <span className="font-medium text-primary">
-                        {appointment.patient.split(' ').map(n => n[0]).join('')}
-                      </span>
+                    <div className="shrink-0">
+                      {appointment.status === 'confirmed' ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Clock className="h-5 w-5 text-yellow-500" />
+                      )}
                     </div>
                     <div>
                       <p className="font-medium">{appointment.patient}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {appointment.time} • {appointment.type}
-                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {appointment.time} - {appointment.type}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      appointment.status === 'confirmed' 
-                        ? 'bg-green-100 text-green-800' 
-                        : appointment.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {appointment.status}
-                    </span>
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
-                  </div>
+                  <Badge variant={appointment.status === 'confirmed' ? 'default' : 'secondary'}>
+                    {appointment.status}
+                  </Badge>
                 </div>
               ))}
             </div>
+            <Button className="w-full mt-4" variant="outline">
+              View All Appointments
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Clinic Activity</CardTitle>
-            <CardDescription>
-              Recent events and notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <activity.icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{activity.title}</p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent Patients */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Patients</CardTitle>
-            <CardDescription>
-              Recently added patient records
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: "Robert Brown", lastVisit: "2 days ago", status: "Active" },
-                { name: "Lisa Garcia", lastVisit: "1 week ago", status: "Active" },
-                { name: "David Wilson", lastVisit: "3 days ago", status: "Urgent" },
-              ].map((patient, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <span className="font-medium text-primary">
-                        {patient.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">{patient.name}</p>
-                      <p className="text-sm text-muted-foreground">Last visit: {patient.lastVisit}</p>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    patient.status === 'Active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {patient.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Button variant="outline" className="w-full">
-                View All Patients
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
@@ -183,23 +168,25 @@ export default function DashboardPage() {
               Common tasks and shortcuts
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button className="w-full justify-start">
-              <Calendar className="mr-2 h-4 w-4" />
-              New Appointment
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Users className="mr-2 h-4 w-4" />
-              Add Patient
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              Create Medical Record
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Bell className="mr-2 h-4 w-4" />
-              View Notifications
-            </Button>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <Button variant="outline" className="h-20 flex-col">
+                <Calendar className="h-6 w-6 mb-2" />
+                New Appointment
+              </Button>
+              <Button variant="outline" className="h-20 flex-col">
+                <Users className="h-6 w-6 mb-2" />
+                Add Patient
+              </Button>
+              <Button variant="outline" className="h-20 flex-col">
+                <FileText className="h-6 w-6 mb-2" />
+                Medical Records
+              </Button>
+              <Button variant="outline" className="h-20 flex-col">
+                <TrendingUp className="h-6 w-6 mb-2" />
+                Reports
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
