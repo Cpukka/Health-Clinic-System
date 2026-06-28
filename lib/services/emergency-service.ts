@@ -1,7 +1,16 @@
-import  prisma  from '@/lib/prisma'
+// /lib/services/emergency-service.ts - Simple version
+import prisma from '@/lib/prisma'
 import { SMSService } from './sms-service'
-import { EmailService } from './email-service'
-import { AuditService } from '@/lib/audit/audit-service'
+import { EmailService } from './email-service' // You might need to create this
+import { AuditService } from '../audit/audit-service'
+
+// Create EmailService if it doesn't exist
+class EmailService {
+  async sendEmergencyAlert(email: string, data: any): Promise<void> {
+    console.log(`📧 Emergency alert email to ${email}:`, data)
+    // Implement actual email sending here
+  }
+}
 
 export class EmergencyService {
   static async triggerEmergencyAlert(
@@ -30,9 +39,6 @@ export class EmergencyService {
         throw new Error('Patient not found')
       }
 
-      // Get emergency contacts
-      const emergencyContacts = await this.getEmergencyContacts(patientId)
-
       // Create emergency record
       const emergencyRecord = await prisma.emergencyAlert.create({
         data: {
@@ -45,34 +51,23 @@ export class EmergencyService {
         },
       })
 
-      // Notify clinic staff
-      await this.notifyClinicStaff(
-        patient.clinic.users,
-        patient,
-        emergencyType,
-        details
-      )
+      // Notify staff (simplified)
+      const smsService = new SMSService()
+      for (const staff of patient.clinic.users) {
+        if (staff.phone) {
+          await smsService.sendEmergencyAlert(
+            staff.phone,
+            `🚨 EMERGENCY: Patient ${patient.firstName} ${patient.lastName} - ${emergencyType}`
+          )
+        }
+      }
 
-      // Notify emergency contacts
-      await this.notifyEmergencyContacts(
-        emergencyContacts,
-        patient,
-        emergencyType,
-        details
-      )
-
-      // Log audit trail
+      // Log audit
       await AuditService.log(
         'EMERGENCY_ALERT_TRIGGERED',
         'EmergencyAlert',
         emergencyRecord.id,
-        {
-          patientId,
-          emergencyType,
-          triggeredBy,
-          notifiedStaff: patient.clinic.users.length,
-          notifiedContacts: emergencyContacts.length,
-        },
+        { patientId, emergencyType, triggeredBy },
         triggeredBy
       )
 
@@ -80,119 +75,6 @@ export class EmergencyService {
     } catch (error) {
       console.error('Emergency alert failed:', error)
       throw error
-    }
-  }
-
-  private static async getEmergencyContacts(patientId: string) {
-    const patient = await prisma.patient.findUnique({
-      where: { id: patientId },
-      select: {
-        emergencyContact: true,
-        phone: true,
-        email: true,
-      },
-    })
-
-    const contacts = []
-
-    if (patient?.emergencyContact) {
-      contacts.push({
-        type: 'PHONE',
-        value: patient.emergencyContact,
-        relationship: 'Emergency Contact',
-      })
-    }
-
-    if (patient?.phone) {
-      contacts.push({
-        type: 'PHONE',
-        value: patient.phone,
-        relationship: 'Patient',
-      })
-    }
-
-    if (patient?.email) {
-      contacts.push({
-        type: 'EMAIL',
-        value: patient.email,
-        relationship: 'Patient',
-      })
-    }
-
-    return contacts
-  }
-
-  private static async notifyClinicStaff(
-    staff: any[],
-    patient: any,
-    emergencyType: string,
-    details: string
-  ) {
-    const smsService = new SMSService()
-    const emailService = new EmailService()
-
-    const message = `🚨 EMERGENCY ALERT - ${emergencyType}
-Patient: ${patient.firstName} ${patient.lastName}
-Details: ${details}
-Location: ${patient.clinic?.name || 'Clinic'}
-Time: ${new Date().toLocaleString()}
-Please respond immediately.`
-
-    for (const staffMember of staff) {
-      try {
-        // Send SMS
-        if (staffMember.phone) {
-          await smsService.sendEmergencyAlert(staffMember.phone, message)
-        }
-
-        // Send Email
-        if (staffMember.email) {
-          await emailService.sendEmergencyAlert(staffMember.email, {
-            patientName: `${patient.firstName} ${patient.lastName}`,
-            emergencyType,
-            details,
-            clinicName: patient.clinic?.name,
-            timestamp: new Date().toISOString(),
-          })
-        }
-      } catch (error) {
-        console.error(`Failed to notify staff ${staffMember.id}:`, error)
-      }
-    }
-  }
-
-  private static async notifyEmergencyContacts(
-    contacts: any[],
-    patient: any,
-    emergencyType: string,
-    details: string
-  ) {
-    const smsService = new SMSService()
-    const emailService = new EmailService()
-
-    const message = `🚨 EMERGENCY NOTIFICATION
-${patient.firstName} ${patient.lastName} has triggered a ${emergencyType} emergency.
-Details: ${details}
-Clinic: ${patient.clinic?.name || 'Medical Center'}
-Please contact the clinic immediately at ${patient.clinic?.phone || 'clinic phone'}.`
-
-    for (const contact of contacts) {
-      try {
-        if (contact.type === 'PHONE') {
-          await smsService.sendEmergencyAlert(contact.value, message)
-        } else if (contact.type === 'EMAIL') {
-          await emailService.sendEmergencyAlert(contact.value, {
-            patientName: `${patient.firstName} ${patient.lastName}`,
-            emergencyType,
-            details,
-            clinicName: patient.clinic?.name,
-            clinicPhone: patient.clinic?.phone,
-            relationship: contact.relationship,
-          })
-        }
-      } catch (error) {
-        console.error(`Failed to notify contact ${contact.value}:`, error)
-      }
     }
   }
 
@@ -207,31 +89,11 @@ Please contact the clinic immediately at ${patient.clinic?.phone || 'clinic phon
         },
       })
 
-      // Notify patient that emergency is resolved
-      const patient = await prisma.patient.findUnique({
-        where: { id: alert.patientId },
-        include: { clinic: true },
-      })
-
-      if (patient?.phone) {
-        const smsService = new SMSService()
-        await smsService.sendMessage(
-          patient.phone,
-          `✅ Emergency resolved: ${resolutionNotes}. Thank you for your patience.`
-        )
-      }
-
       await AuditService.log(
         'EMERGENCY_ALERT_RESOLVED',
         'EmergencyAlert',
         alertId,
-        {
-          resolvedBy,
-          resolutionNotes,
-          durationMinutes: Math.floor(
-            (new Date().getTime() - alert.createdAt.getTime()) / 60000
-          ),
-        },
+        { resolvedBy, resolutionNotes },
         resolvedBy
       )
 
