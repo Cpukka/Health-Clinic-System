@@ -1,6 +1,6 @@
 import  prisma  from '@/lib/prisma'
 import { SMSService } from './sms-service'
-import { EmailService } from '../email-service'
+import { EmailService } from './email-service'
 import { AuditService } from '@/lib/audit/audit-service'
 
 export class EmergencyService {
