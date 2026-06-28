@@ -1,6 +1,9 @@
 // /lib/encryption/medical-records.ts
 import crypto from 'crypto'
 
+// Type for GCM cipher
+type CipherGCM = crypto.CipherGCM
+
 export class MedicalRecordEncryption {
   private algorithm = 'aes-256-gcm'
   private key: Buffer
@@ -18,16 +21,20 @@ export class MedicalRecordEncryption {
   }
 
   encrypt(plaintext: string): { encrypted: string; iv: string; tag: string } {
-    const iv = crypto.randomBytes(16) // GCM recommended 12-16 bytes
+    const iv = crypto.randomBytes(16)
     
-    // Use createCipheriv which returns CipherGCM type
-    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv)
+    // Create GCM cipher and cast to CipherGCM type
+    const cipher = crypto.createCipheriv(
+      this.algorithm, 
+      this.key, 
+      iv
+    ) as crypto.CipherGCM
     
     // Encrypt the data
     let encrypted = cipher.update(plaintext, 'utf8', 'hex')
     encrypted += cipher.final('hex')
     
-    // Get the auth tag for GCM
+    // Get the auth tag for GCM (now TypeScript knows it exists)
     const tag = cipher.getAuthTag()
     
     return {
@@ -42,7 +49,7 @@ export class MedicalRecordEncryption {
       this.algorithm,
       this.key,
       Buffer.from(iv, 'hex')
-    )
+    ) as crypto.DecipherGCM
     
     // Set the auth tag for verification
     decipher.setAuthTag(Buffer.from(tag, 'hex'))
