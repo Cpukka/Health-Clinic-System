@@ -1,4 +1,4 @@
-// SMS Service using Twilio (or other providers)
+// /lib/services/sms-service.ts
 import twilio from 'twilio'
 
 export class SMSService {
@@ -11,6 +11,26 @@ export class SMSService {
         process.env.TWILIO_ACCOUNT_SID,
         process.env.TWILIO_AUTH_TOKEN
       )
+    }
+  }
+
+  // Send emergency alert (the missing method)
+  async sendEmergencyAlert(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      if (this.client && process.env.TWILIO_PHONE_NUMBER) {
+        await this.client.messages.create({
+          body: message,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phoneNumber
+        })
+        console.log(`🚨 Emergency SMS sent to ${phoneNumber}`)
+      } else {
+        console.log(`[DEMO] Emergency SMS would be sent to ${phoneNumber}: ${message}`)
+      }
+      return true
+    } catch (error) {
+      console.error('Failed to send emergency SMS:', error)
+      return false
     }
   }
 
@@ -27,22 +47,20 @@ export class SMSService {
 
       const message = `Reminder: You have an appointment tomorrow at ${formattedDate} with Dr. ${appointment.doctor?.name || 'your doctor'}. Please arrive 15 minutes early.`
       
-      // Only send if Twilio is configured
       if (this.client && process.env.TWILIO_PHONE_NUMBER) {
         await this.client.messages.create({
           body: message,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: patientPhone
         })
-        console.log(`SMS reminder sent to ${patientPhone}`)
+        console.log(`✅ SMS reminder sent to ${patientPhone}`)
       } else {
-        console.log(`[DEMO] SMS would be sent to ${patientPhone}: ${message}`)
+        console.log(`[DEMO] SMS reminder to ${patientPhone}: ${message}`)
       }
       
       return true
     } catch (error) {
       console.error('Failed to send SMS reminder:', error)
-      // Don't fail the whole operation if SMS fails
       return false
     }
   }
@@ -60,22 +78,20 @@ export class SMSService {
 
       const message = `Appointment Confirmed\n\nHello ${appointment.patient?.firstName || 'Patient'},\nYour appointment with Dr. ${appointment.doctor?.name || 'your doctor'} is scheduled for ${formattedDate}.\n\nAppointment ID: ${appointment.id}\nThank you!`
       
-      // Only send if Twilio is configured
       if (this.client && process.env.TWILIO_PHONE_NUMBER) {
         await this.client.messages.create({
           body: message,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: patientPhone
         })
-        console.log(`SMS confirmation sent to ${patientPhone}`)
+        console.log(`✅ SMS confirmation sent to ${patientPhone}`)
       } else {
-        console.log(`[DEMO] SMS would be sent to ${patientPhone}: ${message}`)
+        console.log(`[DEMO] SMS confirmation to ${patientPhone}: ${message}`)
       }
       
       return true
     } catch (error) {
       console.error('Failed to send confirmation SMS:', error)
-      // Don't fail the whole operation if SMS fails
       return false
     }
   }
@@ -88,6 +104,7 @@ export class SMSService {
           from: process.env.TWILIO_PHONE_NUMBER,
           to: phoneNumber
         })
+        console.log(`✅ SMS sent to ${phoneNumber}`)
         return true
       } else {
         console.log(`[DEMO] SMS would be sent to ${phoneNumber}: ${message}`)
@@ -99,6 +116,24 @@ export class SMSService {
     }
   }
 
+  // Send OTP code
+  async sendOTP(phoneNumber: string, code: string): Promise<boolean> {
+    const message = `🔐 Your verification code is: ${code}\nThis code will expire in 10 minutes.\nDo not share this code with anyone.`
+    return this.sendGeneralMessage(phoneNumber, message)
+  }
+
+  // Send password reset
+  async sendPasswordReset(phoneNumber: string, resetLink: string): Promise<boolean> {
+    const message = `🔑 Password Reset\nClick here to reset your password: ${resetLink}\nThis link will expire in 1 hour.`
+    return this.sendGeneralMessage(phoneNumber, message)
+  }
+
+  // Send welcome message
+  async sendWelcomeMessage(phoneNumber: string, userName: string): Promise<boolean> {
+    const message = `👋 Welcome to HealthClinic!\nHello ${userName}, your account has been created.\nYou can now book appointments and access your medical records.`
+    return this.sendGeneralMessage(phoneNumber, message)
+  }
+
   // Check if SMS service is configured
   isConfigured(): boolean {
     return !!this.client && !!process.env.TWILIO_PHONE_NUMBER
@@ -107,3 +142,4 @@ export class SMSService {
 
 // Singleton instance
 export const smsService = new SMSService()
+export default SMSService
