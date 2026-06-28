@@ -1,15 +1,11 @@
 // /lib/encryption/medical-records.ts
 import crypto from 'crypto'
 
-// Type for GCM cipher
-type CipherGCM = crypto.CipherGCM
-
 export class MedicalRecordEncryption {
   private algorithm = 'aes-256-gcm'
   private key: Buffer
 
   constructor() {
-    // In production, use KMS or HashiCorp Vault
     if (!process.env.ENCRYPTION_KEY) {
       throw new Error('ENCRYPTION_KEY environment variable is required')
     }
@@ -22,19 +18,11 @@ export class MedicalRecordEncryption {
 
   encrypt(plaintext: string): { encrypted: string; iv: string; tag: string } {
     const iv = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv) as any
     
-    // Create GCM cipher and cast to CipherGCM type
-    const cipher = crypto.createCipheriv(
-      this.algorithm, 
-      this.key, 
-      iv
-    ) as crypto.CipherGCM
-    
-    // Encrypt the data
     let encrypted = cipher.update(plaintext, 'utf8', 'hex')
     encrypted += cipher.final('hex')
     
-    // Get the auth tag for GCM (now TypeScript knows it exists)
     const tag = cipher.getAuthTag()
     
     return {
@@ -49,21 +37,19 @@ export class MedicalRecordEncryption {
       this.algorithm,
       this.key,
       Buffer.from(iv, 'hex')
-    ) as crypto.DecipherGCM
+    ) as any
     
-    // Set the auth tag for verification
     decipher.setAuthTag(Buffer.from(tag, 'hex'))
     
-    // Decrypt the data
     let decrypted = decipher.update(encrypted, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
     
     return decrypted
   }
 
-  // Convenience method for encrypting objects
+  // Fix: Return type should match what encrypt returns
   encryptObject<T extends Record<string, any>>(obj: T): {
-    data: string
+    encrypted: string
     iv: string
     tag: string
   } {
@@ -85,10 +71,8 @@ export class MedicalRecordEncryption {
     const encryptor = new MedicalRecordEncryption()
     const encrypted: Record<string, any> = {}
     
-    // Copy non-sensitive fields
     for (const [key, value] of Object.entries(data)) {
       if (MedicalRecordEncryption.isSensitiveField(key) && value) {
-        // Encrypt sensitive fields
         const result = encryptor.encrypt(String(value))
         encrypted[key] = {
           encrypted: result.encrypted,
@@ -108,9 +92,8 @@ export class MedicalRecordEncryption {
     const decrypted: Record<string, any> = {}
     
     for (const [key, value] of Object.entries(data)) {
-      if (this.isSensitiveField(key) && value?.encrypted) {
+      if (MedicalRecordEncryption.isSensitiveField(key) && value?.encrypted) {
         try {
-          // Decrypt sensitive fields
           decrypted[key] = decryptor.decrypt(
             value.encrypted,
             value.iv,
